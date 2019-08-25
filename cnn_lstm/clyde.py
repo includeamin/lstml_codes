@@ -10,7 +10,7 @@ import math
 divider_len = 70
 space_len = 2
 
-epochs = 100
+epochs = 64
 batch_size = 32
 
 print('_'*divider_len)
@@ -117,23 +117,22 @@ print('_'*divider_len)
 print('Building model...')
 
 model = Sequential()
-model.add(Conv1D(filters=32, kernel_size=1, activation='relu', input_shape=(train_X.shape[1], train_X.shape[2])))
+model.add(Conv1D(filters=128, kernel_size=1, activation='relu', input_shape=(train_X.shape[1], train_X.shape[2])))
 model.add(MaxPooling1D(pool_size=1))
 model.add(Dropout(0.2))
 
-model.add(Conv1D(filters=16, kernel_size=1, activation='relu'))
+model.add(Conv1D(filters=64, kernel_size=1, activation='relu'))
 model.add(MaxPooling1D(pool_size=1))
 model.add(Dropout(0.2))
 
 
-model.add(Conv1D(filters=8, kernel_size=1, activation='relu'))
+model.add(Conv1D(filters=32, kernel_size=1, activation='relu'))
 model.add(MaxPooling1D(pool_size=1))
 model.add(Dropout(0.2))
 
 model.add(TimeDistributed(Flatten()))
 
-model.add(LSTM(32, activation='relu', return_sequences=True))
-model.add(LSTM(16, activation='relu'))
+model.add(LSTM(128, activation='relu', return_sequences=False))
 model.add(Dropout(0.2))
 
 model.add(Dense(1))

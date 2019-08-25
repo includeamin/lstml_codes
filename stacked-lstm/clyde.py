@@ -3,7 +3,7 @@ from pandas import read_csv
 from matplotlib import pyplot as plt
 from keras.models import Sequential
 from keras.layers import LSTM
-from keras.layers import Dense, Dropout, TimeDistributed, Conv1D, MaxPooling1D, Flatten
+from keras.layers import Dense, Dropout
 import statistics
 import math
 
@@ -15,7 +15,7 @@ batch_size = 32
 
 print('_'*divider_len)
 print('Reading dataset...')
-dataset = read_csv('Ewe.csv').values
+dataset = read_csv('Clyde.csv').values
 print(dataset)
 cols = len(dataset[0, :])
 rows = len(dataset[:, 0])
@@ -30,9 +30,9 @@ print('_'*divider_len + '\n'*space_len)
 
 print('_'*divider_len)
 print('Spliting data to train and test and validation')
-train_data = dataset[:12080, :]
+train_data = dataset[:14766, :]
 validation_data = train_data[10000:, :]
-test_data = dataset[12080:, :]
+test_data = dataset[14766:, :]
 print('Train data: ', len(train_data[:, 0]))
 print('Test data: ', len(test_data[:, 0]))
 print('Validation data: ', len(validation_data[:, 0]))
@@ -102,7 +102,6 @@ print('Spliting test and train and validation data to features and target...')
 train_X, train_y = train_data[:, 1:], train_data[:, 0]
 valid_X, valid_y = validation_data[:, 1:], validation_data[:, 0]
 test_X, test_y = test_data[:, 1:], test_data[:, 0]
-
 print('Reshaping data...')
 train_X = train_X.reshape((train_X.shape[0], 1, train_X.shape[1]))
 valid_X = valid_X.reshape((valid_X.shape[0], 1, valid_X.shape[1]))
@@ -115,30 +114,48 @@ print('_'*divider_len + '\n'*space_len)
 
 print('_'*divider_len)
 print('Building model...')
-
 model = Sequential()
-model.add(Conv1D(filters=128, kernel_size=1, activation='relu',
-                 input_shape=(train_X.shape[1], train_X.shape[2])))
-model.add(MaxPooling1D(pool_size=1))
+
+model.add(LSTM(128,
+               input_shape=(train_X.shape[1], train_X.shape[2]),
+               kernel_initializer='random_normal',
+               return_sequences=True,
+               activation='relu'))
+
+model.add(LSTM(64,
+               kernel_initializer='random_normal',
+               return_sequences=False,
+               activation='relu'))
+
 model.add(Dropout(0.2))
 
-model.add(Conv1D(filters=64, kernel_size=1, activation='relu'))
-model.add(MaxPooling1D(pool_size=1))
-model.add(Dropout(0.2))
 
+# model.add(LSTM(16,
+#                kernel_initializer='random_normal',
+#                return_sequences=True,
+#                activation='relu'))
 
-model.add(Conv1D(filters=32, kernel_size=1, activation='relu'))
-model.add(MaxPooling1D(pool_size=1))
-model.add(Dropout(0.2))
+# model.add(LSTM(16,
+#                kernel_initializer='random_normal',
+#                return_sequences=True,
+#                activation='relu'))
 
-model.add(TimeDistributed(Flatten()))
+# model.add(Dropout(0.2))
 
-model.add(LSTM(128, activation='relu', return_sequences=False))
-model.add(Dropout(0.2))
+# model.add(LSTM(8,
+#                kernel_initializer='random_normal',
+#                return_sequences=True,
+#                activation='relu'))
 
-model.add(Dense(1))
-model.compile(optimizer='adam', loss='mse')
+# model.add(LSTM(8,
+#                kernel_initializer='random_normal',
+#                activation='relu'))
 
+# model.add(Dropout(0.2))
+
+model.add(Dense(1, kernel_initializer='random_uniform', activation='linear'))
+
+model.compile(loss='mse', optimizer='adam')
 print('Model compiled with:\nOptimizer:{}\nLoss:{}'.format('Adam', 'MSE'))
 print('_'*divider_len + '\n'*space_len)
 

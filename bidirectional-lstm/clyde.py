@@ -3,7 +3,8 @@ from pandas import read_csv
 from matplotlib import pyplot as plt
 from keras.models import Sequential
 from keras.layers import LSTM
-from keras.layers import Dense, Dropout, TimeDistributed, Conv1D, MaxPooling1D, Flatten
+from keras.layers import Dense, Dropout, Bidirectional
+from keras.losses import mean_absolute_error
 import statistics
 import math
 
@@ -15,7 +16,7 @@ batch_size = 32
 
 print('_'*divider_len)
 print('Reading dataset...')
-dataset = read_csv('Ewe.csv').values
+dataset = read_csv('Clyde.csv').values
 print(dataset)
 cols = len(dataset[0, :])
 rows = len(dataset[:, 0])
@@ -30,9 +31,9 @@ print('_'*divider_len + '\n'*space_len)
 
 print('_'*divider_len)
 print('Spliting data to train and test and validation')
-train_data = dataset[:12080, :]
+train_data = dataset[:14766, :]
 validation_data = train_data[10000:, :]
-test_data = dataset[12080:, :]
+test_data = dataset[14766:, :]
 print('Train data: ', len(train_data[:, 0]))
 print('Test data: ', len(test_data[:, 0]))
 print('Validation data: ', len(validation_data[:, 0]))
@@ -85,16 +86,16 @@ for col in range(len(test_data[0, :])):
 print('_'*divider_len + '\n'*space_len)
 
 
-print('_'*divider_len)
-print('Plotting time series...')
-fig = plt.figure()
-plt.plot(list(range(0, len(train_data[:, 0]))), train_data, 'b-')
-plt.plot(list(range(len(train_data[:, 0]), len(
-    validation_data[:, 0]) + len(train_data[:, 0]))), validation_data, 'g-')
-plt.plot(list(range(len(train_data[:, 0]) + len(validation_data[:, 0]), len(
-    test_data[:, 0]) + len(train_data[:, 0]) + len(validation_data[:, 0]))), test_data, 'r-')
-plt.show()
-print('_'*divider_len + '\n'*space_len)
+# print('_'*divider_len)
+# print('Plotting time series...')
+# fig = plt.figure()
+# plt.plot(list(range(0, len(train_data[:, 0]))), train_data, 'b-')
+# plt.plot(list(range(len(train_data[:, 0]), len(
+#     validation_data[:, 0]) + len(train_data[:, 0]))), validation_data, 'g-')
+# plt.plot(list(range(len(train_data[:, 0]) + len(validation_data[:, 0]), len(
+#     test_data[:, 0]) + len(train_data[:, 0]) + len(validation_data[:, 0]))), test_data, 'r-')
+# plt.show()
+# print('_'*divider_len + '\n'*space_len)
 
 
 print('_'*divider_len)
@@ -102,7 +103,6 @@ print('Spliting test and train and validation data to features and target...')
 train_X, train_y = train_data[:, 1:], train_data[:, 0]
 valid_X, valid_y = validation_data[:, 1:], validation_data[:, 0]
 test_X, test_y = test_data[:, 1:], test_data[:, 0]
-
 print('Reshaping data...')
 train_X = train_X.reshape((train_X.shape[0], 1, train_X.shape[1]))
 valid_X = valid_X.reshape((valid_X.shape[0], 1, valid_X.shape[1]))
@@ -115,31 +115,36 @@ print('_'*divider_len + '\n'*space_len)
 
 print('_'*divider_len)
 print('Building model...')
-
 model = Sequential()
-model.add(Conv1D(filters=128, kernel_size=1, activation='relu',
-                 input_shape=(train_X.shape[1], train_X.shape[2])))
-model.add(MaxPooling1D(pool_size=1))
-model.add(Dropout(0.2))
 
-model.add(Conv1D(filters=64, kernel_size=1, activation='relu'))
-model.add(MaxPooling1D(pool_size=1))
-model.add(Dropout(0.2))
+model.add(Bidirectional(LSTM(128, activation='relu', return_sequences=False, kernel_initializer='random_uniform'),
+                        input_shape=(train_X.shape[1], train_X.shape[2])))
 
+# model.add(Bidirectional(LSTM(32, activation='relu', return_sequences=False, kernel_initializer='random_uniform'),
+#                         input_shape=(train_X.shape[1], train_X.shape[2])))
 
-model.add(Conv1D(filters=32, kernel_size=1, activation='relu'))
-model.add(MaxPooling1D(pool_size=1))
-model.add(Dropout(0.2))
+model.add(Dropout(0.5))
 
-model.add(TimeDistributed(Flatten()))
+# model.add(Bidirectional(LSTM(16, activation='relu', return_sequences=True, kernel_initializer='random_uniform'),
+#                         input_shape=(train_X.shape[1], train_X.shape[2])))
 
-model.add(LSTM(128, activation='relu', return_sequences=False))
-model.add(Dropout(0.2))
+# model.add(Bidirectional(LSTM(16, activation='relu', return_sequences=True, kernel_initializer='random_uniform'),
+#                         input_shape=(train_X.shape[1], train_X.shape[2])))
 
-model.add(Dense(1))
-model.compile(optimizer='adam', loss='mse')
+# model.add(Dropout(0.2))
 
-print('Model compiled with:\nOptimizer:{}\nLoss:{}'.format('Adam', 'MSE'))
+# model.add(Bidirectional(LSTM(8, activation='relu', return_sequences=True, kernel_initializer='random_uniform'),
+#                         input_shape=(train_X.shape[1], train_X.shape[2])))
+
+# model.add(Bidirectional(LSTM(8, activation='relu', kernel_initializer='random_uniform'),
+#                         input_shape=(train_X.shape[1], train_X.shape[2])))
+
+# model.add(Dropout(0.2))
+
+model.add(Dense(1, kernel_initializer='random_uniform', activation='linear'))
+
+model.compile(loss='mse', optimizer='adam')
+print('Model compiled with:\nOptimizer:{}\nLoss:{}'.format('Adam', 'MAE'))
 print('_'*divider_len + '\n'*space_len)
 
 print('_'*divider_len)
@@ -147,6 +152,7 @@ print('Training...')
 history = model.fit(train_X, train_y, epochs=epochs, batch_size=batch_size,
                     validation_data=(valid_X, valid_y), verbose=2, shuffle=False)
 print('Plotting history of training')
+print(history.history.keys())
 plt.plot(history.history['loss'], 'b', label='training history')
 plt.plot(history.history['val_loss'],  'r', label='validation history')
 plt.title("Train and Validation Loss for the LSTM")
@@ -184,6 +190,7 @@ name = str(uuid.uuid4()) + '.hdf5'
 model.save(name)
 print('Model saved: ' + name)
 print('_'*divider_len + '\n'*space_len)
+
 
 print('_'*divider_len)
 print('Saving csv file...')
