@@ -1,3 +1,6 @@
 **/.vscode
 **/.idea
 **/__pycache__
+**/*.csv
+**/*.hdf5
+**/*.xlsx
