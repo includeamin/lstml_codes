@@ -132,7 +132,7 @@ model.add(Dropout(0.2))
 
 model.add(TimeDistributed(Flatten()))
 
-model.add(LSTM(128, activation='relu', return_sequences=False))
+model.add(LSTM(128, activation='relu', return_sequences=True))
 model.add(Dropout(0.2))
 
 model.add(Dense(1))

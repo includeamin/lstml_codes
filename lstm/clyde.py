@@ -119,6 +119,7 @@ model = Sequential()
 model.add(LSTM(128,
                input_shape=(train_X.shape[1], train_X.shape[2]),
                kernel_initializer='random_normal',
+               return_sequences=True,
                activation='relu'))
 model.add(Dropout(0.2))
 

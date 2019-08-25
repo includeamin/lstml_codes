@@ -124,7 +124,7 @@ model.add(LSTM(128,
 
 model.add(LSTM(64,
                kernel_initializer='random_normal',
-               return_sequences=False,
+               return_sequences=True,
                activation='relu'))
 
 model.add(Dropout(0.2))

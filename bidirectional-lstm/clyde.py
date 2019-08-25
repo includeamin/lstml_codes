@@ -117,7 +117,7 @@ print('_'*divider_len)
 print('Building model...')
 model = Sequential()
 
-model.add(Bidirectional(LSTM(128, activation='relu', return_sequences=False, kernel_initializer='random_uniform'),
+model.add(Bidirectional(LSTM(128, activation='relu', return_sequences=True, kernel_initializer='random_uniform'),
                         input_shape=(train_X.shape[1], train_X.shape[2])))
 
 # model.add(Bidirectional(LSTM(32, activation='relu', return_sequences=False, kernel_initializer='random_uniform'),
